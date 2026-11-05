@@ -1,0 +1,11 @@
+query_fr,matched_en,true_en,cos,true_gwp,matched_gwp
+"Pâte brisée, pur beurre, surgelée, crue","Potato, peeled, baked","Short crust pastry, pure butter, frozen, raw",0.895,3.49,1.24
+Terrine de poisson,Fish terrine,Fish terrine,0.933,8.57,8.57
+Oreille de porc demi-sel,Pork liver pâté,Pork ear sat-cured,0.886,3.61,2.81
+"Hareng gras, cru","Garden cress, raw","Atlantic herring, oily, raw",0.894,2.68,0.87
+Biscuit sec fourré fruits à coque (non ou légèrement chocolaté),Biscuit (cookie),Biscuit (cookie) with nuts (no chocolate or lightly chocolate-flavoured),0.871,3.64,3.59
+"Raisin, sec",Raisin,Raisin,0.902,1.23,1.23
+"Porc, rôti, cru","Pork, roast, cooked","Pork, roast, raw",0.921,6.58,8.4
+"Sauce madère, préemballée","Madeira wine sauce, prepacked","Madeira wine sauce, prepacked",0.922,5.48,5.48
+"Salade de chou ou Coleslaw, avec sauce, préemballée","Coleslaw, w sauce, prepacked","Coleslaw, w sauce, prepacked",0.904,1.22,1.22
+Pain panini,Panini bread,Panini bread,0.901,1.23,1.23

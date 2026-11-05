@@ -1,0 +1,109 @@
+% ---------------- Title page ----------------
+\begin{titlepage}
+\centering
+{\large TERM THESIS REPORT\par}
+\vspace{1.2cm}
+{\LARGE\bfseries \thesistitle\par}
+\vspace{1.4cm}
+{\large Submitted in partial fulfilment of the requirements for the degree of\par}
+\vspace{0.3cm}
+{\large\bfseries \degree\par}
+\vspace{1.2cm}
+{\large by\par}
+\vspace{0.3cm}
+{\Large\bfseries \authorname\par}
+{\large (\rollno)\par}
+\vspace{1.2cm}
+{\large Under the supervision of\par}
+\vspace{0.3cm}
+{\Large \supervisor\par}
+\vfill
+% \includegraphics[width=3cm]{iitkgp_logo}  % add logo file to figures/ if required
+{\large \department\par}
+{\large\bfseries Indian Institute of Technology Kharagpur\par}
+{\large Kharagpur -- 721302, West Bengal, India\par}
+\vspace{0.4cm}
+{\large \submitdate\par}
+\end{titlepage}
+
+% ---------------- Certificate ----------------
+\chapter*{Certificate}
+\addcontentsline{toc}{chapter}{Certificate}
+This is to certify that the term thesis entitled \textbf{``\thesistitle''}, submitted by
+\textbf{\authorname} (Roll No.\ \rollno) to the \department, Indian Institute of Technology
+Kharagpur, is a record of bona fide work carried out under my supervision and guidance
+during the academic session 2026--27.
+
+\vspace{3cm}
+\noindent\begin{tabular}{@{}l}
+\rule{6cm}{0.4pt}\\
+\supervisor\\
+\department\\
+Indian Institute of Technology Kharagpur\\
+Date:
+\end{tabular}
+
+% ---------------- Declaration ----------------
+\chapter*{Declaration}
+\addcontentsline{toc}{chapter}{Declaration}
+I certify that (a) the work contained in this report is original and has been done by me under
+the guidance of my supervisor; (b) the work has not been submitted to any other institute for
+any degree or diploma; (c) I have followed the guidelines provided by the Institute in preparing
+the report; (d) whenever I have used materials (data, theoretical analysis, figures and text)
+from other sources, I have given due credit to them by citing them in the text of the report
+and giving their details in the references; and (e) all data are from openly licensed public
+sources, and all code was written for this project and is available for verification.
+
+\vspace{3cm}
+\noindent\begin{tabular}{@{}l}
+\rule{6cm}{0.4pt}\\
+\authorname\\
+\rollno
+\end{tabular}
+
+% ---------------- Acknowledgements ----------------
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+I express my sincere gratitude to my supervisor, \supervisor, for guidance and encouragement
+throughout this work. I thank ADEME and INRAE for making the AGRIBALYSE database openly
+available, and the developers of the open-source scientific Python ecosystem
+(scikit-learn, XGBoost, SHAP, Sentence-Transformers, Streamlit) on which this work is built.
+% Personalise as appropriate.
+
+% ---------------- Abstract ----------------
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+Life Cycle Assessment (LCA) is the standard method for quantifying the environmental impacts
+of a product from raw-material extraction to end of life, but a full ISO 14040/44 study is
+slow, data-hungry and expensive. In practice, designers and analysts need fast
+\emph{screening} estimates long before complete inventory data exist, and must manually map
+thousands of product descriptions to database processes. This thesis investigates how
+Artificial Intelligence and Machine Learning (AI/ML) can be integrated into LCA to address
+these two bottlenecks, and builds a working, openly reproducible prototype.
+
+Using the open AGRIBALYSE~3.1 database (2{,}451 food products, 16 Environmental Footprint
+indicators), two modules are developed. \textbf{Module~A} is a surrogate impact model: a
+gradient-boosted tree regressor (XGBoost) that predicts a product's impact using only
+information available \emph{before} an LCA is done (food category, storage mode,
+consumer preparation, recipe ingredients and words in the product name), with a strict
+no-leakage design. \textbf{Module~B} is a semantic mapping engine that uses multilingual
+sentence embeddings (E5) to match free-text descriptions, in English or French, to the
+closest LCA datasets. Predictions are made explainable with SHAP and given calibrated
+90\% uncertainty intervals with Mondrian conformal prediction.
+
+Against the common practitioner shortcut of borrowing the sub-category average, the
+model raises \Rsq{} (log scale) for climate change from 0.62 to 0.84 and the share of
+predictions within a factor of two from 77\% to 91\% under random cross-validation; for
+food sub-categories never seen in training, \Rsq{} rises from 0.33 to 0.62. Gains hold for
+all six impact categories tested, including water use (\Rsq{} 0.27~$\rightarrow$~0.64). The
+conformal intervals achieve 91\% empirical coverage at the 90\% target. The mapping engine
+places the correct dataset in its top five for 95\% of terse three-word queries, and five
+encoders are benchmarked. SHAP recovers known LCA patterns (ruminant meat raises, plant
+ingredients lower the footprint). Both modules are integrated into an interactive
+screening tool that flags inputs outside its applicability domain. The thesis closes with a
+critical discussion of limitations, including geographic transferability to India, and a
+roadmap for future work.
+
+\vspace{0.5cm}
+\noindent\textbf{Keywords:} Life Cycle Assessment; machine learning; surrogate modelling;
+explainable AI; conformal prediction; sentence embeddings; AGRIBALYSE; food carbon footprint.

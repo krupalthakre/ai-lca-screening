@@ -1,0 +1,56 @@
+\chapter{Conclusions and Future Work}
+\label{ch:conclusion}
+
+\section{Conclusions}
+
+This thesis set out to integrate AI/ML into Life Cycle Assessment in a way that is accurate,
+honest about uncertainty, interpretable and usable. Using only the open AGRIBALYSE~3.1 database, it
+built and evaluated a two-module framework and an interactive screening tool. The main conclusions
+are:
+
+\begin{enumerate}
+  \item \textbf{ML substantially improves on category-average proxies.} From information available
+  before an LCA, XGBoost predicts climate impact with $R^2_{\log}=0.84$, 91\% of products within a
+  factor of two and a Spearman correlation of 0.92, versus 0.62, 77\% and 0.82 for the sub-group
+  average. The improvement holds for all six impact categories tested.
+  \item \textbf{Generalisation must be measured, not assumed.} On sub-groups never seen in training,
+  accuracy falls to $R^2_{\log}=0.62$ -- still nearly double the proxy (0.33) -- showing that random
+  splits overstate performance on genuinely new products.
+  \item \textbf{Product identity is the key information.} Name words add more accuracy than any other
+  feature block, consistent with the dominance of the agricultural stage.
+  \item \textbf{Uncertainty can be reported rigorously.} Mondrian conformal intervals reach 91\%
+  coverage at the 90\% target, with widths that adapt to each food group; their failure under
+  distribution shift (new dairy sub-groups) is identified and documented.
+  \item \textbf{Explanations agree with LCA knowledge.} SHAP recovers the ruminant $>$ pork $>$ poultry
+  hierarchy and the cocoa effect, while highlighting that some important features (chilled storage)
+  are correlates rather than causes.
+  \item \textbf{Modern sentence embeddings make dataset mapping practical.} E5-small places the
+  correct dataset in its top five for 95\% of terse queries; encoder choice matters greatly and no
+  single encoder is best for both monolingual and cross-lingual mapping.
+\end{enumerate}
+
+\section{Future work}
+
+\begin{enumerate}
+  \item \textbf{Richer inputs:} recipe mass fractions, country of origin, transport mode and farming
+  system, which would address the main failure modes found (air freight, tropical crops).
+  \item \textbf{Hybrid physics--ML models:} compute a recipe-weighted sum of ingredient impacts and
+  let ML learn only the residual (processing, packaging, losses), improving extrapolation.
+  \item \textbf{Transfer to India:} recalibrate on a small set of Indian food LCAs and test whether
+  conformal recalibration restores coverage.
+  \item \textbf{Other sectors:} apply the framework to construction materials or chemicals where open
+  product-level databases exist.
+  \item \textbf{Large language models:} use LLMs to parse unstructured product sheets into the
+  structured attributes the model needs, and to generate natural-language explanations from SHAP
+  values -- with the conformal interval and applicability check retained as safeguards.
+  \item \textbf{User study:} measure time saved and mapping accuracy with LCA practitioners using
+  the tool on real bills of materials.
+\end{enumerate}
+
+\section{Closing remark}
+
+AI/ML will not make Life Cycle Assessment unnecessary; it can make LCA thinking available
+\emph{earlier} and \emph{at scale}. The guiding principle of this work -- predict only from what is
+known before the LCA, measure generalisation honestly, attach calibrated uncertainty, explain every
+estimate, and say clearly when the model is out of its depth -- is what makes such tools
+trustworthy enough to use.

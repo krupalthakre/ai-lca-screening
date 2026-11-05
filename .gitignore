@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Local tooling / editor
+.claude/
+.vscode/
+.idea/
+
+# Large, regenerable artefacts (rebuilt by src/experiments.py and src/figures.py)
+models/X_full.npy
+models/shap_values.npy
+
+# LaTeX build by-products
+thesis/build.log
+thesis/*.aux
+thesis/*.log
+thesis/*.out
+thesis/*.toc
+thesis/*.xdv

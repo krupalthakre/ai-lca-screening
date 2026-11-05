@@ -1,0 +1,55 @@
+\chapter{Reproducibility}
+\label{app:repro}
+
+All code, data and results are in the project folder \texttt{BTP-2026/}:
+
+\begin{tabular}{@{}ll@{}}
+\texttt{data/raw/} & original AGRIBALYSE 3.1 CSV files \\
+\texttt{data/processed/} & cleaned tables and cached embeddings \\
+\texttt{src/prepare\_data.py} & cleaning, translation, no-leakage table construction \\
+\texttt{src/embed.py} & E5-small embeddings of product names \\
+\texttt{src/features.py} & feature builder (META, ING, TXT) and kNN predictor \\
+\texttt{src/experiments.py} & E1--E4 and final model training \\
+\texttt{src/matching\_eval.py} & E5 mapping benchmark \\
+\texttt{src/figures.py} & all figures and SHAP analysis \\
+\texttt{app/app.py} & Streamlit screening tool \\
+\texttt{results/} & all metric tables (CSV) and \texttt{RESULTS\_SUMMARY.md} \\
+\end{tabular}
+
+\medskip
+\noindent Commands (Python 3.12):
+\begin{verbatim}
+pip install pandas numpy scikit-learn xgboost shap \
+            sentence-transformers streamlit matplotlib joblib
+python src/prepare_data.py
+python src/embed.py
+python src/experiments.py
+python src/matching_eval.py
+python src/figures.py
+streamlit run app/app.py
+\end{verbatim}
+
+\chapter{Model Settings}
+\label{app:settings}
+
+\begin{table}[ht]
+\centering\small
+\caption{Model hyper-parameters (fixed a priori; seed 42).}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Model & Settings \\
+\midrule
+Ridge & $\alpha=3.0$ \\
+Random Forest & 500 trees, min\_samples\_leaf = 2, max\_features = 0.3 \\
+XGBoost & 600 trees, learning rate 0.03, max depth 6, subsample 0.8, \\
+        & colsample\_bytree 0.5, min\_child\_weight 2, $\lambda=1$ \\
+kNN (E5) & $k=10$, softmax temperature $T=0.01$ (small grid: $k\in\{3,5,10\}$, $T\in\{0.005,0.01,0.02,1\}$) \\
+Conformal & Mondrian by food group ($n_g\ge20$), $\alpha=0.10$, nested 5-fold calibration \\
+Vocabularies & ingredients and name words with document frequency $\ge5$ in the training fold \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent\textbf{Note on the kNN grid.} The $(k,T)$ grid was evaluated on the same cross-validation
+folds used for reporting, which can make the kNN results slightly optimistic. This affects only the
+kNN and stacked variants, which were \emph{not} adopted, so the conclusions are unaffected.

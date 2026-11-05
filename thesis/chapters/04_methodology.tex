@@ -1,0 +1,204 @@
+\chapter{Methodology}
+\label{ch:method}
+
+\section{Overall framework}
+
+Figure~\ref{fig:arch} shows the integrated workflow. A user describes a product in free text.
+Module~B retrieves the most similar LCA datasets and pre-fills the product's attributes, which the
+user may correct. Module~A then predicts the impact, attaches a calibrated interval and explains the
+prediction. An applicability-domain check warns when the description is unlike anything in the
+database.
+
+\begin{figure}[ht]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=5mm and 7mm, every node/.style={font=\footnotesize},
+  io/.style={draw=inkgray, fill=gray!8, rounded corners=2pt, align=center, minimum height=9mm, text width=2.3cm},
+  mb/.style={draw=c1, fill=c1!10, rounded corners=2pt, align=center, minimum height=9mm, text width=2.6cm},
+  ma/.style={draw=c2, fill=c2!10, rounded corners=2pt, align=center, minimum height=9mm, text width=2.6cm},
+  arr/.style={-{Latex}, thick, inkgray}]
+\node[io] (in) {Free-text product\\description (EN/FR)};
+\node[mb, right=of in] (emb) {E5 sentence\\embedding};
+\node[mb, right=of emb] (ret) {Top-$k$ cosine\\retrieval over\\2,451 datasets};
+\node[io, right=of ret] (ad) {Applicability\\check (sim.\ $\geq$ 0.85)};
+\node[mb, below=of ret] (attr) {Attributes pre-filled\\from best match\\(user can edit)};
+\node[ma, below=of attr] (fe) {Feature builder\\(META + ING + TXT)};
+\node[ma, left=of fe] (xgb) {XGBoost\\$\hat y=\log_{10}$GWP};
+\node[ma, left=of xgb] (out) {Estimate\\$10^{\hat y}$ ×/÷ $10^{q_g}$\\+ SHAP drivers};
+\draw[arr] (in) -- (emb); \draw[arr] (emb) -- (ret); \draw[arr] (ret) -- (ad);
+\draw[arr] (ret) -- (attr); \draw[arr] (attr) -- (fe); \draw[arr] (fe) -- (xgb); \draw[arr] (xgb) -- (out);
+\begin{scope}[on background layer]
+\node[draw=c1, dashed, rounded corners, fit=(emb)(ret)(attr), inner sep=6pt, label={[c1,font=\footnotesize\bfseries]above:Module B -- mapping}] {};
+\node[draw=c2, dashed, rounded corners, fit=(fe)(xgb)(out), inner sep=6pt, label={[c2,font=\footnotesize\bfseries]below:Module A -- estimation, uncertainty, explanation}] {};
+\end{scope}
+\end{tikzpicture}}
+\caption{Integrated screening framework. Module B (blue) maps text to datasets; Module A (orange) estimates, quantifies uncertainty and explains.}
+\label{fig:arch}
+\end{figure}
+
+\section{Problem formulation (Module A)}
+
+For product $i$ with pre-LCA descriptor vector $\mathbf{x}_i$ and impact $I_i>0$, learn
+\[
+  \hat f:\ \mathbf{x}\ \mapsto\ \hat y = \log_{10}\hat I, \qquad
+  \hat f = \arg\min_f \sum_i \big(y_i - f(\mathbf{x}_i)\big)^2 + \Omega(f),
+\]
+where $y_i=\log_{10} I_i$ and $\Omega$ is a complexity penalty. Squared error on the log scale
+corresponds to penalising the \emph{ratio} $\hat I / I$, which matches how LCA practitioners think
+about screening accuracy (``within a factor of two'').
+
+\section{Feature engineering}
+
+Features are built in four blocks, used incrementally in the ablation study:
+
+\begin{description}
+  \item[META] One-hot encodings of food group (11 levels), sub-group (61), delivery mode (5),
+  consumer preparation (6) and packaging data source (2); numeric season and air-freight codes;
+  number of recipe ingredients and a composite-product flag.
+  \item[ING] Binary indicators for each recipe ingredient occurring in at least five training
+  products (125 ingredients); zero for non-composite products.
+  \item[TXT] Binary bag-of-words from the English product name (words occurring in at least five
+  training products, minus stop-words; 421 words), giving interpretable features such as \texttt{word:beef}.
+  \item[KNN] (tested, not adopted) the similarity-weighted footprint of the $k=10$ most similar
+  \emph{other} training products in the E5 embedding space, with softmax weights
+  $w_j \propto \exp(s_j/T)$, $T=0.01$.
+\end{description}
+
+All vocabularies (category levels, ingredients, words) are fitted on the training fold only. The
+final model has 635 features.
+
+\section{Models}
+
+\begin{enumerate}
+  \item \textbf{Global median} -- predicts the training median for every product (lower bound).
+  \item \textbf{Sub-group median (proxy)} -- predicts the median of the product's sub-group
+  (falling back to its group, then globally). This mimics the common practitioner shortcut of
+  using a category-average emission factor, and is the main baseline to beat.
+  \item \textbf{Ridge regression} \citep{hoerl1970} -- linear model with $L_2$ penalty ($\alpha=3$).
+  \item \textbf{Random Forest} \citep{breiman2001} -- 500 trees, min.\ leaf size 2, 30\% of
+  features per split.
+  \item \textbf{XGBoost} \citep{chen2016xgboost} -- gradient-boosted trees (600 trees, learning
+  rate 0.03, max depth 6, row subsample 0.8, column subsample 0.5, min child weight 2,
+  $\lambda=1$). Hyper-parameters are standard values for small tabular datasets and were fixed
+  \emph{a priori}, not tuned on the test folds.
+  \item \textbf{kNN on text embedding} -- Module B used directly as a regressor (KNN block alone).
+  \item \textbf{XGBoost + kNN} -- XGBoost with the KNN block stacked as an extra feature; the kNN
+  value for training rows is computed leave-one-out so it never sees the row's own target.
+\end{enumerate}
+
+\section{Validation design}
+\label{sec:validation}
+
+Two 5-fold cross-validation schemes answer two different practical questions:
+
+\begin{description}
+  \item[Random CV] Products are split at random. This answers: \emph{``How well does the model
+  estimate a new product when similar products are already in the database?''} It is optimistic,
+  because AGRIBALYSE contains near-duplicates (e.g.\ raw vs.\ cooked, oven vs.\ microwave
+  variants of the same dish).
+  \item[Leave-sub-group-out CV] \texttt{GroupKFold} by sub-group: every product of a sub-group is
+  in the same fold, so test sub-groups are \emph{never seen} during training. This answers:
+  \emph{``How well does the model generalise to a new kind of product?''} It is the honest lower
+  bound.
+\end{description}
+
+All reported numbers are \emph{out-of-fold}: every product is predicted by a model that never saw it.
+
+\section{Evaluation metrics}
+
+With $y$ and $\hat y$ on the $\log_{10}$ scale and $I=10^y$:
+\begin{itemize}
+  \item $R^2$ on the log scale -- share of variance in $\log$ impact explained.
+  \item Within-factor-2 rate $= \frac1n\sum_i \mathbf{1}\big[|y_i-\hat y_i|<\log_{10}2\big]$ --
+  the most intuitive screening metric.
+  \item Median absolute percentage error (MdAPE) and MAE in kg~\co/kg on the original scale.
+  \item Spearman rank correlation -- whether the model ranks products correctly, which is what
+  portfolio screening and hotspot prioritisation actually need.
+\end{itemize}
+
+\section{Uncertainty quantification: Mondrian split-conformal prediction}
+
+Conformal prediction \citep{vovk2005,lei2018,angelopoulos2023} turns any point predictor into an
+interval predictor with a distribution-free coverage guarantee. Given $n$ calibration residuals
+$r_j=|y_j-\hat y_j|$ from data not used to fit the model, set
+\[
+  q = \text{Quantile}\Big(\{r_j\};\ \tfrac{\lceil (n+1)(1-\alpha)\rceil}{n}\Big), \qquad
+  C(\mathbf{x}) = [\hat y - q,\ \hat y + q],
+\]
+which satisfies $\Pr(y\in C(\mathbf{x}))\ge 1-\alpha$ if calibration and test data are exchangeable.
+On the original scale the interval is $\hat I \times\!/\!\div\, 10^{q}$.
+
+Because prediction difficulty differs strongly between food groups (Figure~\ref{fig:dist}), a
+\emph{Mondrian} (group-conditional) variant is used: a separate $q_g$ is computed for each food
+group $g$ with at least 20 calibration products, with a global $q$ as fallback. This gives narrower
+intervals for homogeneous groups and wider ones where data are heterogeneous, with approximately
+group-wise coverage.
+
+To evaluate coverage honestly, calibration is \emph{nested}: within each outer training fold, an
+inner 5-fold CV produces out-of-fold residuals that define $q_g$; coverage and width are then
+measured on the untouched outer test fold. The deployed model uses out-of-fold residuals from the
+full dataset. Target miscoverage is $\alpha=0.10$.
+
+\section{Explainability: SHAP}
+
+For a tree ensemble $f$, the SHAP value $\phi_j(\mathbf{x})$ of feature $j$ is its Shapley value in
+the cooperative game whose payoff is the model output \citep{lundberg2017}; the explanation is
+additive,
+\[
+  f(\mathbf{x}) = \phi_0 + \sum_{j} \phi_j(\mathbf{x}),
+\]
+where $\phi_0$ is the mean prediction. TreeSHAP \citep{lundberg2020} computes these values exactly
+and quickly. Because the target is $\log_{10}$ GWP, $10^{\phi_j}$ is the \emph{multiplicative
+factor} by which feature $j$ moves the estimate, which is easy to communicate (``the word
+\emph{lamb} multiplies the estimate by 2.5'').
+
+\section{Module B: semantic mapping to LCA datasets}
+
+\subsection{Encoders}
+
+Each candidate encoder maps a text $t$ to a unit vector $\mathbf{e}(t)\in\mathbb{R}^d$; similarity
+is the cosine $s(t,t')=\mathbf{e}(t)^\top\mathbf{e}(t')$, and retrieval returns the top-$k$ database
+entries. Five encoders were compared:
+\begin{itemize}
+  \item TF-IDF over character 3--5-grams \citep{salton1988} (lexical baseline);
+  \item paraphrase-multilingual-MiniLM-L12-v2 \citep{reimers2020};
+  \item LaBSE \citep{feng2022labse};
+  \item multilingual-E5-base and multilingual-E5-small \citep{wang2024e5}, using the
+  recommended \texttt{query:}/\texttt{passage:} prefixes;
+\end{itemize}
+plus a hybrid (average of TF-IDF and E5-small similarities).
+
+\subsection{Benchmark tasks}
+
+Ground-truth mappings between external product lists and AGRIBALYSE do not exist publicly, so two
+tasks with known correct answers were constructed from the database itself:
+\begin{description}
+  \item[T1 -- cross-lingual] query = French product name, corpus = 2{,}451 English LCI names.
+  Simulates mapping a non-English bill of materials.
+  \item[T2 -- terse query] query = first three words of the English name, corpus = full names.
+  Simulates the short descriptions analysts actually type.
+\end{description}
+A retrieval is correct if the retrieved English name equals the true one (a strict criterion:
+near-duplicate variants count as errors). Metrics are top-1 and top-5 accuracy, the share of
+top-1 matches in the correct sub-group, and the share whose borrowed footprint lies within a factor
+of two of the true value.
+
+\subsection{Applicability domain}
+
+For an out-of-scope description the nearest dataset is still returned, so a similarity threshold
+is needed. It was calibrated on two probe sets (\texttt{src/ood\_threshold.py}): the 2{,}451
+in-domain terse queries of task T2, and 20 deliberately out-of-domain queries -- non-food goods
+(e.g.\ ``car tyre'', ``laptop'', ``cement bag'') and Indian foods absent from AGRIBALYSE
+(``paneer'', ``idli'', ``dhokla''). With E5-small, the highest out-of-domain similarity was 0.848
+(``petrol''), while the 1st percentile of in-domain similarities was 0.873. A threshold of
+$s<0.85$ therefore flags all 20 out-of-domain probes and only 0.04\% (1 of 2{,}451) of in-domain
+queries, and triggers the warning in the tool. Cross-lingual queries score systematically lower
+(e.g.\ the French ``yaourt nature'' is matched correctly at 0.81), so the warning advises
+non-English users to rephrase in English.
+
+\section{Implementation}
+
+The pipeline is implemented in Python~3.12 with pandas, scikit-learn \citep{pedregosa2011},
+XGBoost~3.2, SHAP, Sentence-Transformers and Streamlit. All randomness is seeded (seed 42); the
+complete pipeline runs in about 15 minutes on a laptop CPU, and every table and figure in this
+thesis is regenerated by five scripts (Appendix~\ref{app:repro}).

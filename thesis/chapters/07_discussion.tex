@@ -1,0 +1,95 @@
+\chapter{Discussion}
+\label{ch:discussion}
+
+\section{What AI/ML adds to LCA -- and what it does not}
+
+The results support a clear division of labour. ML does \emph{not} replace LCA: every target value
+in this work was produced by a process-based LCA, and the model can only interpolate and moderately
+extrapolate from that knowledge. What ML adds is \emph{speed and coverage at the screening stage}.
+Once trained, the model estimates a new product in milliseconds from information a designer already
+has, with an honest interval and an explanation. For portfolio-level decisions (which 50 of 2{,}000
+products deserve a full LCA? which recipe reformulation is promising?), a Spearman rank correlation
+of 0.92 and 91\% of estimates within a factor of two are far more useful than category averages,
+and are available at essentially zero marginal cost.
+
+The mapping module addresses a different, equally real cost: the analyst time spent translating
+descriptions into database processes. A 95\% top-5 hit rate means that, in most cases, the analyst
+only has to \emph{confirm} one of five suggestions rather than search a database -- the
+human-in-the-loop design also recommended by CaML \citep{balaji2023caml}.
+
+\section{Why the honest evaluation matters}
+
+The gap between random CV ($R^2=0.84$) and leave-sub-group-out CV ($R^2=0.62$) is the central
+methodological lesson. AGRIBALYSE contains families of near-identical products, so a random split
+lets the model ``look up'' a sibling. Reporting only random-split accuracy, as is common, would
+overstate how well an LCA surrogate works on genuinely new products by roughly a third of the
+explained variance. The same lesson appears in uncertainty: conformal intervals calibrated
+in-distribution under-cover on new dairy sub-groups (46\%). Distribution-free guarantees are only
+as good as the exchangeability assumption behind them.
+
+\section{Negative results}
+
+Three design ideas that seemed promising did not work and were not adopted:
+(i) stacking the embedding-kNN footprint as a feature (redundant with name words and harmful on new
+categories); (ii) averaging lexical and semantic similarity scores (scale mismatch); and (iii) the
+popular MiniLM multilingual encoder, which was no better than TF-IDF for cross-lingual mapping.
+Reporting these protects future work from repeating them and shows that design choices were made on
+evidence.
+
+\section{Threats to validity}
+
+\begin{description}
+  \item[Internal validity] All vocabularies and calibration quantiles are fitted inside training
+  folds; the kNN feature is computed leave-one-out; conformal coverage is assessed with nested CV.
+  The only selection performed on reporting folds is a small $(k,T)$ grid for the non-adopted kNN
+  variant. Hyper-parameters of XGBoost were fixed a priori; tuning would likely add a small
+  improvement, so the reported accuracy is if anything conservative.
+  \item[Construct validity] Targets are AGRIBALYSE values, which themselves carry uncertainty (mean
+  DQR 2.46). The model learns AGRIBALYSE's modelling choices -- including its proxies -- not ``true''
+  environmental impact. Agreement with AGRIBALYSE is the appropriate test for a screening surrogate
+  of that database, but not evidence of physical accuracy.
+  \item[External validity] All data describe the French food system (French agriculture, energy mix,
+  logistics and consumption habits). Absolute numbers will not transfer directly to other countries.
+  \item[Mapping benchmark] T1 and T2 are constructed from the database itself; real user queries
+  may be noisier (typos, brand names, mixed languages).
+\end{description}
+
+\section{Limitations}
+
+\begin{enumerate}
+  \item \textbf{Rare but decisive attributes.} Air freight affects only two products in the data,
+  so the model cannot learn its large effect (Section~\ref{sec:e1}). Any attribute that is rare in
+  the training data but large in effect is a blind spot of purely data-driven models.
+  \item \textbf{No ingredient masses.} AGRIBALYSE publishes which ingredients a recipe contains, not
+  in what proportion. Mass shares would likely improve composite-food predictions considerably.
+  \item \textbf{Origin and farming system.} Country of origin, organic vs.\ conventional and
+  production system are not inputs, though they matter for land use and water.
+  \item \textbf{Single domain.} Only food products are covered; extending to other sectors requires
+  a comparable open product-level database.
+  \item \textbf{Screening only.} Outputs are not suitable for ISO~14044 comparative assertions,
+  EPDs or public claims.
+\end{enumerate}
+
+\section{Relevance for India}
+
+India lacks a public, product-level food LCA database comparable to AGRIBALYSE, which is precisely
+the situation in which screening tools are most useful and most dangerous. The framework transfers
+in two ways. \emph{Methodologically}, the pipeline is database-agnostic: as Indian LCI datasets
+become available, the same code can be retrained, and the leave-sub-group-out protocol and
+applicability-domain check indicate how far the model can be trusted. \emph{Practically}, the
+multilingual encoder already accepts descriptions in many languages, and the applicability check
+correctly flags products absent from the French database (e.g.\ \emph{paneer}, similarity 0.84),
+preventing silent misuse. A transfer-learning study -- training on AGRIBALYSE and recalibrating with
+a small set of Indian LCAs -- is a natural next step.
+
+\section{Implications}
+
+\begin{itemize}
+  \item \textbf{For practitioners:} use ML surrogates for prioritisation and hotspot screening, read
+  the interval and the applicability flag, and confirm the mapping; reserve full LCA for decisions
+  that need it.
+  \item \textbf{For database providers:} publishing recipe proportions, origin and transport mode
+  would directly improve the accuracy of data-driven screening.
+  \item \textbf{For researchers:} report grouped (out-of-category) validation and calibrated
+  uncertainty alongside random-split accuracy.
+\end{itemize}

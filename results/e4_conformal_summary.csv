@@ -1,0 +1,3 @@
+scheme,target_coverage_%,empirical_coverage_%,median_factor_x
+random,90.0,91.10567115463077,1.9973092462598752
+leave-subgroup-out,90.0,87.18890248878009,3.317024205147281

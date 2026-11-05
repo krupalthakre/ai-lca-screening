@@ -1,0 +1,17 @@
+# CPU-only PyTorch (much smaller than the default CUDA build)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.12.0+cpu
+
+# Versions pinned to match the trained model artefacts (models/xgb_gwp.joblib)
+streamlit==1.66.1
+scikit-learn==1.6.1
+xgboost==3.2.0
+pandas==2.2.2
+numpy==2.4.6
+scipy==1.17.1
+joblib==1.4.2
+shap==0.54.1
+sentence-transformers==6.2.0
+transformers==5.8.0
+altair==6.3.0
+matplotlib

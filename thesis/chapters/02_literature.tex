@@ -1,0 +1,155 @@
+\chapter{Background and Literature Review}
+\label{ch:lit}
+
+\section{Life Cycle Assessment}
+
+\subsection{The four phases}
+
+ISO~14040/44 define LCA as an iterative four-phase procedure \citep{iso14040,iso14044}
+(Figure~\ref{fig:lca-phases}):
+
+\begin{enumerate}
+  \item \textbf{Goal and scope definition} -- purpose, intended audience, the \emph{functional
+  unit} (here, 1~kg of food as sold/consumed) and the \emph{system boundary} (here,
+  cradle-to-consumption: agriculture, processing, packaging, transport, retail, consumer use).
+  \item \textbf{Life Cycle Inventory (LCI)} -- compilation of all input and output flows
+  (materials, energy, emissions, land, water) per functional unit.
+  \item \textbf{Life Cycle Impact Assessment (LCIA)} -- conversion of flows into impact indicators
+  by multiplying each flow by a \emph{characterisation factor}; e.g.\ for climate change,
+  $\text{GWP} = \sum_i m_i \cdot \text{CF}_i$ in kg~\co{}, where $m_i$ is the mass of greenhouse
+  gas $i$ emitted and $\text{CF}_i$ its 100-year global warming potential.
+  \item \textbf{Interpretation} -- hotspot identification, sensitivity and uncertainty analysis,
+  conclusions and recommendations.
+\end{enumerate}
+
+\begin{figure}[ht]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=6mm and 10mm, every node/.style={font=\small},
+  box/.style={draw=c1, fill=c1!8, rounded corners=3pt, minimum width=3.4cm, minimum height=1cm, align=center},
+  ml/.style={draw=c2, fill=c2!10, rounded corners=3pt, align=center, font=\footnotesize, text width=4.2cm}]
+\node[box] (g) {Goal \& scope\\definition};
+\node[box, below=of g] (i) {Inventory analysis\\(LCI)};
+\node[box, below=of i] (a) {Impact assessment\\(LCIA)};
+\node[box, right=22mm of i, minimum height=4.2cm, minimum width=2.6cm] (int) {Interpretation};
+\draw[-{Latex}, thick, c1] (g) -- (i); \draw[-{Latex}, thick, c1] (i) -- (a);
+\foreach \n in {g,i,a} \draw[{Latex}-{Latex}, c1] (\n.east) -- (\n.east -| int.west);
+\node[ml, left=10mm of i] (m1) {\textbf{ML here:} gap filling, inventory mapping (\textbf{Module B})};
+\node[ml, left=10mm of a] (m2) {\textbf{ML here:} surrogate impact prediction (\textbf{Module A}), CF prediction};
+\node[ml, right=6mm of int] (m3) {\textbf{ML here:} explanation (SHAP), uncertainty (conformal)};
+\draw[-{Latex}, dashed, c2] (m1) -- (i); \draw[-{Latex}, dashed, c2] (m2) -- (a); \draw[-{Latex}, dashed, c2] (m3) -- (int);
+\end{tikzpicture}}
+\caption{The four ISO 14040/44 phases of LCA and where AI/ML methods integrate (dashed). Bold labels mark the parts implemented in this thesis.}
+\label{fig:lca-phases}
+\end{figure}
+
+\subsection{Impact categories and the EF 3.0 method}
+
+Results in this thesis use the European Commission's Environmental Footprint (EF~3.0) LCIA method
+\citep{fazio2018}, which reports 16 midpoint indicators -- climate change, ozone depletion,
+ionising radiation, photochemical ozone formation, particulate matter, human toxicity (cancer and
+non-cancer), acidification, eutrophication (freshwater, marine, terrestrial), freshwater
+ecotoxicity, land use, and depletion of water, fossil and mineral resources -- and a weighted
+\emph{single score} in milli-points (mPt). Many of these indicators are strongly correlated across
+products \citep{steinmann2016}, which suggests that a model which learns one indicator well may
+transfer to others; this is tested in Section~\ref{sec:e3}.
+
+\subsection{Types of LCA data}
+
+\begin{itemize}
+  \item \textbf{Process-based LCI databases} (e.g.\ ecoinvent \citep{wernet2016}, AGRIBALYSE
+  \citep{agribalyse2020}) model individual unit processes in physical units; accurate but costly
+  and (in ecoinvent's case) licensed.
+  \item \textbf{Environmentally extended input--output (EEIO) models} (e.g.\ USEEIO
+  \citep{yang2017useeio}) give impacts per unit of monetary spend by economic sector; complete
+  coverage but coarse resolution.
+  \item \textbf{Product-level result databases} such as the AGRIBALYSE synthesis tables give
+  ready-computed impacts for finished products, which is precisely the supervised-learning target
+  needed here.
+\end{itemize}
+
+\subsection{Why LCA is slow: the data bottleneck}
+
+Reap et al.\ \citep{reap2008} identified data availability and quality as a central unresolved
+problem in LCA, and Hellweg and Milà~i~Canals \citep{hellweg2014} highlight the need for faster,
+streamlined approaches that keep scientific robustness. Two specific symptoms motivate this work:
+(i) \emph{missing data} for new or niche products, and (ii) the \emph{mapping effort} needed to
+connect product descriptions to database processes.
+
+\section{AI/ML in LCA: a structured review}
+
+Ghoroghi et al.\ \citep{ghoroghi2022} systematically reviewed ML applications in LCA and found
+them concentrated in optimisation, prediction of impacts, and support for inventory compilation,
+while noting gaps in transparency, uncertainty treatment and generalisability. Algren et al.\
+\citep{algren2021} similarly survey ML methods for handling incomplete or uncertain LCA data.
+The literature can be organised by the LCA phase that ML supports (Table~\ref{tab:lit}).
+
+\subsection{Inventory gap filling}
+
+Hou et al.\ \citep{hou2018} estimated missing unit-process flows in ecoinvent with a
+similarity-based approach, accurate when fewer than about 5\% of flows are missing. Zhao et al.\
+\citep{zhao2021} extended this with decision trees, classifying zero/non-zero flows and estimating
+non-zero values with $R^2>0.7$ when under 20\% of a process is missing. These works operate on the
+inventory matrix itself and require licensed process data.
+
+\subsection{Surrogate models for rapid impact screening}
+
+Song, Keller and Suh \citep{song2017} trained neural networks on molecular descriptors to predict
+the cradle-to-gate impacts of chemicals, reaching $R^2$ of 0.87 for the Eco-indicator 99 score but
+only 0.48 for global warming, and stressed that \emph{applicability domains} matter when
+interpreting such screening predictions. This is the closest conceptual precedent for Module~A:
+learn a direct map from cheap descriptors to impacts. In the food domain, Clark et al.\
+\citep{clark2022} estimated four environmental indicators for 57{,}000 UK and Irish products by
+inferring ingredient composition from ingredient lists and pairing it with LCA data -- a
+rule-based rather than learned approach, but one that shows the value of ingredient information.
+
+\subsection{NLP for mapping products to LCA data}
+
+Balaji et al.\ \citep{balaji2023caml} (CaML) used pre-trained sentence-transformer embeddings
+\citep{reimers2019} to map product descriptions to EEIO industry sectors in a zero-shot manner,
+ranking the top-5 candidates for human confirmation and reporting a mean absolute percentage error
+of about 22\% without domain labels. This motivates Module~B, which maps to \emph{product-level
+process datasets} instead of sectors, compares several encoders, and tests a cross-lingual setting.
+
+\subsection{Explainability and uncertainty}
+
+Tree ensembles such as Random Forests \citep{breiman2001} and gradient boosting (XGBoost
+\citep{chen2016xgboost}) are strong on tabular data, and SHAP values \citep{lundberg2017,lundberg2020}
+provide additive, locally exact explanations for them. For uncertainty, conformal prediction
+\citep{vovk2005,lei2018,angelopoulos2023} yields prediction intervals with finite-sample coverage
+guarantees that do not depend on the model being correct -- an attractive property for LCA, where
+uncertainty reporting is required by ISO~14044 but is rarely provided by ML surrogates.
+
+\begin{table}[ht]
+\centering\small
+\caption{Representative AI/ML-in-LCA studies and how this thesis relates to them.}
+\label{tab:lit}
+\begin{tabularx}{\textwidth}{@{}p{2.6cm}p{2.4cm}Xp{2.3cm}@{}}
+\toprule
+Study & LCA phase & Approach & Gap addressed here \\
+\midrule
+Hou et al.\ 2018 \citep{hou2018} & Inventory & Similarity-based estimation of missing flows (ecoinvent) & Open data; product level \\
+Zhao et al.\ 2021 \citep{zhao2021} & Inventory & Decision trees for missing flows & Uncertainty intervals \\
+Song et al.\ 2017 \citep{song2017} & Impact & ANN from molecular descriptors to impacts & Explainability; unseen-category test \\
+Clark et al.\ 2022 \citep{clark2022} & Inventory/Impact & Ingredient-list inference for 57k foods & Learned model; uncertainty \\
+Balaji et al.\ 2023 \citep{balaji2023caml} & Inventory mapping & Zero-shot sentence similarity to EEIO sectors & Process-level, multilingual, encoder benchmark \\
+Ghoroghi et al.\ 2022 \citep{ghoroghi2022} & Review & Survey of ML in LCA & -- \\
+\midrule
+\textbf{This thesis} & Mapping + Impact + Interpretation & XGBoost surrogate + E5 mapping + SHAP + conformal, integrated tool & -- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Research gap}
+
+From the review, four gaps emerge that this thesis addresses together:
+\begin{enumerate}
+  \item \textbf{Evaluation realism.} Most surrogate studies report random-split accuracy, which
+  rewards memorising near-duplicates. Performance on genuinely new categories is rarely reported.
+  \item \textbf{Uncertainty.} ML predictions in LCA are usually point estimates without calibrated
+  intervals.
+  \item \textbf{Transparency.} Black-box predictions are hard for LCA practitioners to trust or audit.
+  \item \textbf{Integration.} Estimation and mapping are studied separately, though in practice
+  they form one workflow (describe $\rightarrow$ map $\rightarrow$ estimate $\rightarrow$
+  interpret).
+\end{enumerate}

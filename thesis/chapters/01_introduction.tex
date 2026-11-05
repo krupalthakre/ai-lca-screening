@@ -1,0 +1,111 @@
+\chapter{Introduction}
+\label{ch:intro}
+
+\section{Background and motivation}
+
+Every product we use -- a packet of biscuits, a litre of milk, a steel beam -- carries an
+environmental burden that is spread across a long chain of activities: growing or extracting raw
+materials, processing, packaging, transport, retail, use and disposal. \emph{Life Cycle
+Assessment} (LCA), standardised in ISO~14040 and ISO~14044 \citep{iso14040,iso14044}, is the
+accepted method for adding up these burdens in a consistent way. LCA results now drive
+eco-labels, Environmental Product Declarations (EPDs), corporate carbon reporting, green public
+procurement and product redesign \citep{hellweg2014,finnveden2009}.
+
+The food system alone is responsible for roughly one third of global anthropogenic greenhouse-gas
+emissions \citep{crippa2021}, and the footprints of individual foods differ by orders of magnitude
+-- beef can emit more than 50 times as much per kilogram as many plant foods \citep{poore2018}.
+Choosing the right products, recipes and suppliers is therefore one of the largest levers
+available to manufacturers, retailers and consumers. Yet acting on this lever requires
+footprint numbers for very large numbers of products.
+
+\section{The problem: LCA is accurate but slow}
+
+A full process-based LCA requires a detailed \emph{life cycle inventory} (LCI): every material,
+energy and emission flow for every process in the supply chain. Assembling this inventory is the
+most time-consuming and expensive step \citep{reap2008}. Commercial background databases such as
+ecoinvent \citep{wernet2016} are licensed, and even with database access a practitioner must
+(i) map every item of a bill of materials or recipe to the right database process, and
+(ii) fill gaps where no matching data exist. A single study can take weeks to months.
+
+This creates two practical bottlenecks that this thesis targets:
+
+\begin{enumerate}[label=\textbf{B\arabic*.}]
+  \item \textbf{The estimation bottleneck.} Early in design, or when screening a portfolio of
+  thousands of products, decision makers need an \emph{approximate but reliable} footprint long
+  before a full inventory exists. The common shortcut -- borrowing the average of a product
+  category -- is crude and gives no indication of its own uncertainty.
+  \item \textbf{The mapping bottleneck.} Translating free-text descriptions (``frozen breaded
+  chicken nuggets'', ``pâte feuilletée pur beurre'') into the correct database entries is
+  manual, repetitive, language-dependent and error-prone.
+\end{enumerate}
+
+Artificial Intelligence and Machine Learning (AI/ML) are natural candidates for both: supervised
+learning can learn the mapping from easily available product attributes to impacts, and modern
+natural-language-processing (NLP) models can measure the semantic similarity of product
+descriptions across languages. The question is \emph{how} to integrate them so that the result
+is accurate, honest about its uncertainty, interpretable to an LCA practitioner and usable in
+practice.
+
+\section{Aim and objectives}
+
+\textbf{Aim.} To design, implement and critically evaluate an AI/ML framework that delivers fast,
+explainable and uncertainty-aware LCA screening estimates and automates the mapping of product
+descriptions to LCA datasets, using only openly available data.
+
+\noindent\textbf{Objectives.}
+\begin{enumerate}[label=O\arabic*.]
+  \item Review how AI/ML has been applied across the LCA phases and identify the gap addressed.
+  \item Build a clean, leakage-free modelling dataset from the open AGRIBALYSE~3.1 database.
+  \item Develop a surrogate impact model (Module~A) and benchmark it against practitioner
+        baselines under both optimistic and realistic (unseen-category) validation.
+  \item Quantify uncertainty with distribution-free conformal prediction intervals.
+  \item Explain the model's predictions with SHAP and check them against LCA domain knowledge.
+  \item Develop and benchmark a multilingual semantic mapping engine (Module~B).
+  \item Integrate both modules into an interactive screening tool with an applicability-domain check.
+\end{enumerate}
+
+\section{Research questions}
+
+\begin{description}[style=nextline,leftmargin=1.2cm]
+  \item[RQ1] How accurately can ML predict product-level LCA impacts from pre-LCA information,
+  compared with the category-average proxy used in practice?
+  \item[RQ2] How much does accuracy degrade for product categories absent from training, and can
+  the model's uncertainty be reported honestly?
+  \item[RQ3] Do the model's explanations agree with established LCA knowledge?
+  \item[RQ4] How well can sentence-embedding models map free-text product descriptions to LCA
+  datasets, including across languages?
+\end{description}
+
+\section{Contributions}
+
+\begin{itemize}
+  \item A reproducible, open-data pipeline (AGRIBALYSE~3.1) with an explicit \emph{no-leakage}
+        rule: no stage-wise or ingredient-wise LCA result is ever used as a model input.
+  \item A two-scheme evaluation (random vs.\ leave-sub-group-out cross-validation) that separates
+        interpolation from genuine generalisation -- a distinction often missing in ML-for-LCA work.
+  \item Calibrated 90\% prediction intervals via Mondrian conformal prediction, evaluated in a
+        nested design.
+  \item A five-encoder benchmark for LCA dataset mapping in two realistic tasks (cross-lingual and
+        terse queries).
+  \item A working screening tool (single product and recipe/bill-of-materials modes) with
+        out-of-domain warnings.
+  \item An honest account of negative results (e.g.\ embedding-based stacking did not help) and
+        limitations.
+\end{itemize}
+
+\section{Scope}
+
+The case study is food products, chosen because (a) a high-quality, openly licensed, product-level
+LCA database exists, (b) food is a major source of emissions, and (c) the product space is large
+and diverse. The framework itself is domain-agnostic: any LCA database with product descriptors
+and impact results can replace AGRIBALYSE. The tool is intended for \emph{screening and
+prioritisation}, not for ISO-compliant comparative assertions or EPDs.
+
+\section{Organisation of the thesis}
+
+Chapter~\ref{ch:lit} reviews LCA fundamentals and the literature on AI/ML in LCA.
+Chapter~\ref{ch:data} describes the data and exploratory analysis. Chapter~\ref{ch:method}
+presents the methodology of both modules. Chapter~\ref{ch:results} reports the experiments.
+Chapter~\ref{ch:tool} describes the prototype tool. Chapter~\ref{ch:discussion} discusses
+implications, threats to validity and limitations, and Chapter~\ref{ch:conclusion} concludes with
+future work.
