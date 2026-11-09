@@ -20,3 +20,6 @@ thesis/*.log
 thesis/*.out
 thesis/*.toc
 thesis/*.xdv
+
+# Reference material from another student (do not publish)
+report.pdf

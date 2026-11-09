@@ -11,20 +11,26 @@ All code, data and results are in the project folder \texttt{BTP-2026/}:
 \texttt{src/features.py} & feature builder (META, ING, TXT) and kNN predictor \\
 \texttt{src/experiments.py} & E1--E4 and final model training \\
 \texttt{src/matching\_eval.py} & E5 mapping benchmark \\
+\texttt{src/ood\_threshold.py} & calibration of the out-of-scope similarity threshold \\
 \texttt{src/figures.py} & all figures and SHAP analysis \\
-\texttt{app/app.py} & Streamlit screening tool \\
+\texttt{app/app.py} & Streamlit entry point (multi-page navigation) \\
+\texttt{app/core.py} & shared logic: matching, estimation, explanations \\
+\texttt{app/app\_pages/} & pages: estimate, recipe, insights, about \\
 \texttt{results/} & all metric tables (CSV) and \texttt{RESULTS\_SUMMARY.md} \\
 \end{tabular}
 
 \medskip
+\noindent Public repository: \url{https://github.com/krupalthakre/ai-lca-screening}.
+
+\medskip
 \noindent Commands (Python 3.12):
 \begin{verbatim}
-pip install pandas numpy scikit-learn xgboost shap \
-            sentence-transformers streamlit matplotlib joblib
+pip install -r requirements.txt
 python src/prepare_data.py
 python src/embed.py
 python src/experiments.py
 python src/matching_eval.py
+python src/ood_threshold.py
 python src/figures.py
 streamlit run app/app.py
 \end{verbatim}

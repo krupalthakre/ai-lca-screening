@@ -1,77 +1,92 @@
+% Front pages follow the Civil Engineering Department (IIT Kharagpur) report format.
+\newcommand{\frontheading}[1]{\clearpage\thispagestyle{plain}\begin{center}{\large\bfseries\underline{#1}}\end{center}\vspace{0.8cm}}
+
 % ---------------- Title page ----------------
 \begin{titlepage}
 \centering
-{\large TERM THESIS REPORT\par}
-\vspace{1.2cm}
-{\LARGE\bfseries \thesistitle\par}
-\vspace{1.4cm}
-{\large Submitted in partial fulfilment of the requirements for the degree of\par}
-\vspace{0.3cm}
+\vspace*{-0.8cm}
+{\Large\bfseries \thesistitle\par}
+\vspace{0.7cm}
+{\large\itshape Thesis submitted to the\par
+Indian Institute of Technology, Kharagpur\par
+In partial fulfillment of the requirements for the award of the degree of\par}
+\vspace{0.5cm}
 {\large\bfseries \degree\par}
-\vspace{1.2cm}
-{\large by\par}
+\vspace{0.5cm}
+{\large By\par}
+{\large\bfseries \authorname\par}
+{\large\bfseries Roll No.: \rollno\par}
+\vspace{0.5cm}
+{\large Under the guidance of\par}
 \vspace{0.3cm}
-{\Large\bfseries \authorname\par}
-{\large (\rollno)\par}
-\vspace{1.2cm}
-{\large Under the supervision of\par}
-\vspace{0.3cm}
-{\Large \supervisor\par}
-\vfill
-% \includegraphics[width=3cm]{iitkgp_logo}  % add logo file to figures/ if required
-{\large \department\par}
-{\large\bfseries Indian Institute of Technology Kharagpur\par}
-{\large Kharagpur -- 721302, West Bengal, India\par}
-\vspace{0.4cm}
-{\large \submitdate\par}
+{\large\bfseries\addfontfeature{LetterSpace=6} \supervisor\par}
+\vspace{0.5cm}
+\includegraphics[width=3.0cm]{iitkgp_logo}\par
+\vspace{0.5cm}
+{\large\bfseries\addfontfeature{LetterSpace=4} \deptcaps\par}
+\vspace{0.15cm}
+{\large\bfseries\addfontfeature{LetterSpace=4} INDIAN INSTITUTE OF TECHNOLOGY KHARAGPUR\par}
+\vspace{0.15cm}
+{\large\bfseries\addfontfeature{LetterSpace=4} \monthyear\par}
 \end{titlepage}
 
 % ---------------- Certificate ----------------
-\chapter*{Certificate}
+\clearpage
+\thispagestyle{plain}
+\begin{center}
+{\large\addfontfeature{LetterSpace=4} \deptcaps\par}
+\vspace{0.3cm}
+{\large\addfontfeature{LetterSpace=4} INDIAN INSTITUTE OF TECHNOLOGY KHARAGPUR\par}
+\vspace{0.8cm}
+\includegraphics[width=2.6cm]{iitkgp_logo}\par
+\vspace{1cm}
+{\large\bfseries\underline{CERTIFICATE}\par}
+\end{center}
 \addcontentsline{toc}{chapter}{Certificate}
-This is to certify that the term thesis entitled \textbf{``\thesistitle''}, submitted by
-\textbf{\authorname} (Roll No.\ \rollno) to the \department, Indian Institute of Technology
-Kharagpur, is a record of bona fide work carried out under my supervision and guidance
-during the academic session 2026--27.
+\vspace{0.6cm}
+{\setstretch{1.6}\noindent
+This is to certify that we have examined the thesis entitled \textbf{\thesistitle}, submitted by
+\textbf{\authorname} (Roll Number: \rollno), a student of the \textbf{Department of Civil
+Engineering}, in partial fulfillment for the award of the degree of \degreeinline. We hereby
+accord our approval of it as a study carried out and presented in a manner required for its
+acceptance in partial fulfillment for the degree for which it has been submitted. The thesis has
+fulfilled all the requirements as per the regulations of the Institute and has reached the
+standard needed for submission.\par}
 
+\vfill
+\noindent
+\begin{minipage}[t]{0.5\textwidth}
+\textbf{Date: November, 2026}\\[6pt]
+\textbf{Place: IIT Kharagpur}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.42\textwidth}
+\textbf{\supervisor}\\[6pt]
+\textbf{Department of Civil Engineering}\\[6pt]
+\textbf{IIT Kharagpur}
+\end{minipage}
 \vspace{3cm}
-\noindent\begin{tabular}{@{}l}
-\rule{6cm}{0.4pt}\\
-\supervisor\\
-\department\\
-Indian Institute of Technology Kharagpur\\
-Date:
-\end{tabular}
-
-% ---------------- Declaration ----------------
-\chapter*{Declaration}
-\addcontentsline{toc}{chapter}{Declaration}
-I certify that (a) the work contained in this report is original and has been done by me under
-the guidance of my supervisor; (b) the work has not been submitted to any other institute for
-any degree or diploma; (c) I have followed the guidelines provided by the Institute in preparing
-the report; (d) whenever I have used materials (data, theoretical analysis, figures and text)
-from other sources, I have given due credit to them by citing them in the text of the report
-and giving their details in the references; and (e) all data are from openly licensed public
-sources, and all code was written for this project and is available for verification.
-
-\vspace{3cm}
-\noindent\begin{tabular}{@{}l}
-\rule{6cm}{0.4pt}\\
-\authorname\\
-\rollno
-\end{tabular}
 
 % ---------------- Acknowledgements ----------------
-\chapter*{Acknowledgements}
+\frontheading{ACKNOWLEDGEMENTS}
 \addcontentsline{toc}{chapter}{Acknowledgements}
-I express my sincere gratitude to my supervisor, \supervisor, for guidance and encouragement
-throughout this work. I thank ADEME and INRAE for making the AGRIBALYSE database openly
-available, and the developers of the open-source scientific Python ecosystem
-(scikit-learn, XGBoost, SHAP, Sentence-Transformers, Streamlit) on which this work is built.
-% Personalise as appropriate.
+{\setstretch{1.6}\noindent
+I am deeply grateful to my supervisor, \supervisor, for the guidance, encouragement and
+thoughtful feedback provided throughout this term thesis. I thank the Department of Civil Engineering, IIT Kharagpur, for the
+opportunity and resources to pursue this research. I also acknowledge ADEME and INRAE for making
+the AGRIBALYSE database openly available, and the developers of the open-source scientific
+software on which this work is built. I thank my friends and classmates for their suggestions and
+constructive feedback, and finally my parents and family for their constant support and
+encouragement.\par}
+
+\vspace{1.5cm}
+\hfill\begin{tabular}{@{}l@{}}
+\textbf{\authorname}\\[4pt]
+\textbf{\rollno}
+\end{tabular}
 
 % ---------------- Abstract ----------------
-\chapter*{Abstract}
+\frontheading{ABSTRACT}
 \addcontentsline{toc}{chapter}{Abstract}
 Life Cycle Assessment (LCA) is the standard method for quantifying the environmental impacts
 of a product from raw-material extraction to end of life, but a full ISO 14040/44 study is
